@@ -5,8 +5,7 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 // Config binding
-builder.Services.Configure<MongoDBSettings>(
-    builder.Configuration.GetSection("MongoDBSettings"));
+builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDBSettings"));
 
 builder.Services.AddSingleton<UserService>();
 
@@ -43,7 +42,7 @@ app.MapPut("/api/users/{id}", async (string id, User updatedUser, UserService se
 
     updatedUser.Id = id;
     await service.UpdateAsync(id, updatedUser);
-    return Results.NoContent();
+    return Results.Ok(new { message = "User has been updated successfully." });
 });
 
 app.MapDelete("/api/users/{id}", async (string id, UserService service) =>
@@ -52,7 +51,8 @@ app.MapDelete("/api/users/{id}", async (string id, UserService service) =>
     if (user is null) return Results.NotFound();
 
     await service.DeleteAsync(id);
-    return Results.Ok();
+    return Results.Ok(new { message = "User has been Deleted successfully." });
 });
+
 
 app.Run();

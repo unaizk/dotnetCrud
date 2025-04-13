@@ -16,8 +16,8 @@ public class UserService
     }
 
     public async Task<List<User>> GetAllAsync() => await _users.Find(_ => true).ToListAsync();
-    public async Task<User?> GetByIdAsync(string id) => await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
+    public async Task<User?> GetByIdAsync(string id) => await _users.Find(user => user.Id == id).FirstOrDefaultAsync();
     public async Task CreateAsync(User user) => await _users.InsertOneAsync(user);
-    public async Task UpdateAsync(string id, User updated) => await _users.ReplaceOneAsync(u => u.Id == id, updated);
-    public async Task DeleteAsync(string id) => await _users.DeleteOneAsync(u => u.Id == id);
+    public async Task UpdateAsync(string id, User updated) => await _users.ReplaceOneAsync(user => user.Id == id, updated);
+    public async Task DeleteAsync(string id) => await _users.DeleteOneAsync(user => user.Id == id);
 }
