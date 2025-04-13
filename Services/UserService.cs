@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using dotnetCrud.Models;
+using dotnetCrud.Data;
 using Microsoft.Extensions.Options;
 
 namespace dotnetCrud.Services;
@@ -8,11 +9,9 @@ public class UserService
 {
     private readonly IMongoCollection<User> _users;
 
-    public UserService(IOptions<MongoDBSettings> settings)
+    public UserService(MongoDbContext context)
     {
-        var client = new MongoClient(settings.Value.ConnectionString);
-        var database = client.GetDatabase(settings.Value.DatabaseName);
-        _users = database.GetCollection<User>(settings.Value.CollectionName);
+       _users = context.Users;
     }
 
     public async Task<List<User>> GetAllAsync() => await _users.Find(_ => true).ToListAsync();

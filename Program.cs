@@ -1,5 +1,6 @@
 using dotnetCrud.Models;
 using dotnetCrud.Services;
+using dotnetCrud.Data;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Config binding
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDBSettings"));
 
+builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<UserService>();
 
 builder.Services.AddEndpointsApiExplorer();
