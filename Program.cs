@@ -1,44 +1,58 @@
+using dotnetCrud.Models;
+using dotnetCrud.Services;
+using Microsoft.Extensions.Options;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Config binding
+builder.Services.Configure<MongoDBSettings>(
+    builder.Configuration.GetSection("MongoDBSettings"));
+
+builder.Services.AddSingleton<UserService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapGet("/api/users", async (UserService service) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    return Results.Ok(await service.GetAllAsync());
+});
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/api/users/{id}", async (string id, UserService service) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    var user = await service.GetByIdAsync(id);
+    return user is null ? Results.NotFound() : Results.Ok(user);
+});
+
+app.MapPost("/api/users", async (User user, UserService service) =>
+{
+    await service.CreateAsync(user);
+    return Results.Created($"/api/users/{user.Id}", user);
+});
+
+app.MapPut("/api/users/{id}", async (string id, User updatedUser, UserService service) =>
+{
+    var existing = await service.GetByIdAsync(id);
+    if (existing is null) return Results.NotFound();
+
+    updatedUser.Id = id;
+    await service.UpdateAsync(id, updatedUser);
+    return Results.NoContent();
+});
+
+app.MapDelete("/api/users/{id}", async (string id, UserService service) =>
+{
+    var user = await service.GetByIdAsync(id);
+    if (user is null) return Results.NotFound();
+
+    await service.DeleteAsync(id);
+    return Results.Ok();
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
